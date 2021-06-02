@@ -1,0 +1,46 @@
+.MuiSlider-thumb {
+    width: 25px!important;
+    height: 25px!important;
+    display: flex!important;
+    outline: 0!important;
+    position: absolute!important;
+    box-sizing: border-box!important;
+    margin-top: -11px !important;
+    transition: box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms!important;
+    align-items: center!important;
+    margin-left: -6px!important;
+    border-radius: 50%!important;
+    justify-content: center!important;
+    background-color: currentColor!important;
+    margin-top: -10px!important;
+    background-color: #33a661!important;
+}
+.MuiSlider-rail {
+    width: 100%!important;
+    height: 10px!important;
+    display: block!important;
+    opacity: 0.38!important;
+    position: absolute!important;
+    border-radius: 1px!important;
+    background-color: currentColor!important;
+}
+.MuiSlider-track {
+    height: 10px!important;
+    display: block!important;
+    position: absolute!important;
+    border-radius: 1px!important;
+    background-color: #33a661!important;
+}
+.PrivateValueLabel-circle-4 {
+    width: 32px!important;
+    height: 32px!important;
+    display: flex!important;
+    background-color:#33a661 !important;
+    transform: rotate(
+-45deg
+)!important;
+    align-items: center;
+    border-radius: 50% 50% 50% 0;
+    justify-content: center;
+    background-color: currentColor;
+}
