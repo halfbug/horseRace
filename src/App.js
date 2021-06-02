@@ -5,9 +5,9 @@ import { gql, useQuery } from '@apollo/client';
 function App() {
 
   const GET_RES = gql`
- {
-  get_race_results{
-    edges {
+ query ($input: GetRaceResultsInput, $before: String, $after: String, $first: Int, $last: Int) {
+      getRaceResults(before: $before, after: $after, first: $first, last: $last, input: $input) {
+        edges {
       cursor
       node {
         country
@@ -44,22 +44,28 @@ function App() {
         }
       }
     }
-  }
-}
-
+        pageInfo {
+          startCursor
+          endCursor
+          hasNextPage
+          hasPreviousPage
+        }
+      }
+    }
 `;
 
-const { loading, error, data } = useQuery(GET_RES,
-//   {variables: {
-// 	"first": 2,
-// 	"input": {
-// 		"onlyMyRacehorses": false,
-// 		"distance": {
-// 			"from": 1000,
-// 			"to": 2400
-// 		}
-// 	}
-// }}
+const { loading, error, data } = useQuery(GET_RES,{ 
+  variables: {
+    first:2,
+    input:{
+      onlyMyRacehorses:false,
+      distance:{
+        from:1000,
+        to:2400
+      }
+    }
+  }
+}
 );
 console.log("🚀 ~ file: App.js ~ line 16 ~ loading", loading)
 console.log("🚀 ~ file: App.js ~ line 16 ~ error", error)

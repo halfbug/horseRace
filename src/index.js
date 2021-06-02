@@ -18,8 +18,8 @@ const authLink = setContext((_, { headers }) => {
   return {
     headers: {
       ...headers,
-      Authorization: `x-developer-secret ${process.env.REACT_APP_API_KEY_STRING}`,
-      'Content-Type': 'application/json'
+      Authorization: `x-developer-secret ${process.env.REACT_APP_API_KEY}`,
+     // 'Content-Type': 'application/json'
       
     }
       
