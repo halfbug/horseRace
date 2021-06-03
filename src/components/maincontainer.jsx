@@ -224,10 +224,12 @@ function valuetext(value) {
                     <th className="cblue">ENTREE FEE</th>
                     <th className="cgray">REGISTERED</th>
                   </tr>
-                  {races.length>0 && races.map(({node: race}) =>{
+                  {races.length>0 && races.map(({node: race},index) =>{
                     return(<> <tr>
                     <td>
-                      <p className="fw3">{race.name.toString()}</p>
+                      <a onClick={()=>setselectedIndex(index)}>
+                      <p className="fw3"  >{race.name.toString()}</p>
+                      </a>
                       <span className="cgray">Class {race.class}</span>
                     </td>
                     <td>
@@ -249,8 +251,8 @@ function valuetext(value) {
           <div className="col-md-5 mb20">
             <div className="blockBox">
               <div className="majorBox br8 graybg">
-                <h2 className="fs20 mb5">{races[0].node.name}</h2>
-                <p className="cgray2 fs18">{races[0].node.length}M</p>
+                <h2 className="fs20 mb5">{races[selectedIndex].node.name}</h2>
+                <p className="cgray2 fs18">{races[selectedIndex].node.length}M</p>
               </div>
               <div className="majorMiniCont">
                 <div className="flex">
