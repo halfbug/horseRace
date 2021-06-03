@@ -1,6 +1,6 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import './style.css'
-
+import { gql, useQuery } from '@apollo/client';
 import Typography from '@material-ui/core/Typography';
 import Slider from '@material-ui/core/Slider';
 
@@ -8,7 +8,85 @@ import Slider from '@material-ui/core/Slider';
  import item_sample from '../img/item_sample.png'
 
 function Maincontainer (){
-  
+  const GET_RES = gql`
+  query ($input: GetRaceResultsInput, $before: String, $after: String, $first: Int, $last: Int) {
+       getRaceResults(before: $before, after: $after, first: $first, last: $last, input: $input) {
+         edges {
+       cursor
+       node {
+         country
+         city
+         name
+         length
+         start_time
+         fee
+         race_id
+         weather
+         status
+         class
+         prize_pool {
+           first
+           second
+           third
+           total
+         }
+         horses {
+           horse_id
+           finish_time
+           final_position
+           name
+           gate
+           owner_address
+           bloodline
+           gender
+           breed_type
+           gen
+           coat
+           hex_color
+           img_url
+           class
+           stable_name
+           win_rate
+         }
+       }
+     }
+         pageInfo {
+           startCursor
+           endCursor
+           hasNextPage
+           hasPreviousPage
+         }
+       }
+     }
+ `;
+ 
+ const { loading, error, data } = useQuery(GET_RES,{ 
+   variables: {
+     first:10,
+     input:{
+       onlyMyRacehorses:false,
+       distance:{
+         from:1000,
+         to:2400
+       }
+     }
+   }
+ }
+ );
+ console.log("🚀 ~ file: App.js ~ line 16 ~ loading", loading)
+ console.log("🚀 ~ file: App.js ~ line 16 ~ error", error)
+ console.log("🚀 ~ file: App.js ~ line 16 ~ data", data);
+ const [races, setRaces] = useState([]);
+ const [selectedIndex, setselectedIndex] = useState(0);
+ useEffect(()=>{
+  if(!loading && races.length<1) 
+  {
+    const {getRaceResults:{edges: raceslist}} = data;
+    console.log(raceslist);
+    setRaces(raceslist);
+ }
+ },[loading])
+ 
 function valuetext(value) {
   return `${value}°C`;
 }
@@ -139,72 +217,40 @@ function valuetext(value) {
               <button type="submit" name="searchHorse" className="btnFilter trans cwhite fw3 br5 w100"><i className="fa fa-search" aria-hidden="true" /> &nbsp; Search </button>
             </div> {/* blockBox */}
             <div className="blockBox mt30">
+              
               <table className="changeTable w100">
                 <tbody><tr>
-                    <th className="cgray">CHANGE</th>
+                    <th className="cgray">RACE</th>
                     <th className="cblue">ENTREE FEE</th>
                     <th className="cgray">REGISTERED</th>
                   </tr>
-                  <tr>
+                  {races.length>0 && races.map(({node: race}) =>{
+                    return(<> <tr>
                     <td>
-                      <p className="fw3">0 M</p>
-                      <span className="cgray">85 V</span>
+                      <p className="fw3">{race.name.toString()}</p>
+                      <span className="cgray">Class {race.class}</span>
                     </td>
                     <td>
-                      <p className="cblue">Entree fee would be %5</p>
+                      <p className="cblue">Entree fee would be %{(race.fee*100).toFixed(2)}</p>
                       <p>Prize pool would be $125</p>
                     </td>
                     <td>
-                      8/12
+                      {race.horses.length}/12
                     </td>
                   </tr>
-                  <tr>
-                    <td>
-                      <p className="fw3">0 M</p>
-                      <span className="cgray">85 V</span>
-                    </td>
-                    <td>
-                      <p className="cblue">Entree fee would be %5</p>
-                      <p>Prize pool would be $125</p>
-                    </td>
-                    <td>
-                      8/12
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <p className="fw3">0 M</p>
-                      <span className="cgray">85 V</span>
-                    </td>
-                    <td>
-                      <p className="cblue">Entree fee would be %5</p>
-                      <p>Prize pool would be $125</p>
-                    </td>
-                    <td>
-                      8/12
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <p className="fw3">0 M</p>
-                      <span className="cgray">85 V</span>
-                    </td>
-                    <td>
-                      <p className="cblue">Entree fee would be %5</p>
-                      <p>Prize pool would be $125</p>
-                    </td>
-                    <td>
-                      8/12
-                    </td>
-                  </tr>
+                 </>)}
+                 )} 
+                 
                 </tbody></table>
             </div> {/* blockBox */}
           </div> {/* col */}
+          
+          {!loading && races.length>0 ?
           <div className="col-md-5 mb20">
             <div className="blockBox">
               <div className="majorBox br8 graybg">
-                <h2 className="fs20 mb5">Seatle Chase</h2>
-                <p className="cgray2 fs18">1200 M</p>
+                <h2 className="fs20 mb5">{races[0].node.name}</h2>
+                <p className="cgray2 fs18">{races[0].node.length}M</p>
               </div>
               <div className="majorMiniCont">
                 <div className="flex">
@@ -242,11 +288,12 @@ function valuetext(value) {
             <div className="blockBox mt30">
               <div className="dashItems">
                 <div className="row">
-                  <div className="col-md-4 col-xs-6 mb20">
+                  
+                  {races[selectedIndex].node.horses.map(horse=><> <div className="col-md-4 col-xs-6 mb20">
                     <div className="itemBack">
-                      <p className="itemTitle">Horse name</p>
+                      <p className="itemTitle">{horse.name}</p>
                       <div className="itemInner graybg br8">
-                        <img src={item_sample} className="itemThumbnail" />
+                        <img src={horse.img_url} className="itemThumbnail" alt="horse"/>
                         <div className="flex ai fw3 mb10 jcb">
                           <p>W %</p>
                           <p>0.0008</p>
@@ -256,149 +303,14 @@ function valuetext(value) {
                           <br />
                           P %
                         </p>
-                      </div> {/* itemInner */}
+                      </div> 
                     </div>
-                  </div> {/* col */}
-                  <div className="col-md-4 col-xs-6 mb20">
-                    <div className="itemBack">
-                      <p className="itemTitle">Horse name</p>
-                      <div className="itemInner graybg br8">
-                        <img src={item_sample} className="itemThumbnail" />
-                        <div className="flex ai fw3 mb10 jcb">
-                          <p>W %</p>
-                          <p>0.0008</p>
-                        </div>
-                        <p className="cgray2">
-                          w % 1000 m
-                          <br />
-                          P %
-                        </p>
-                      </div> {/* itemInner */}
-                    </div>
-                  </div> {/* col */}
-                  <div className="col-md-4 col-xs-6 mb20">
-                    <div className="itemBack">
-                      <p className="itemTitle">Horse name</p>
-                      <div className="itemInner graybg br8">
-                        <img src={item_sample} className="itemThumbnail" />
-                        <div className="flex ai fw3 mb10 jcb">
-                          <p>W %</p>
-                          <p>0.0008</p>
-                        </div>
-                        <p className="cgray2">
-                          w % 1000 m
-                          <br />
-                          P %
-                        </p>
-                      </div> {/* itemInner */}
-                    </div>
-                  </div> {/* col */}
-                  <div className="col-md-4 col-xs-6 mb20">
-                    <div className="itemBack">
-                      <p className="itemTitle">Horse name</p>
-                      <div className="itemInner graybg br8">
-                        <img src={item_sample}className="itemThumbnail" />
-                        <div className="flex ai fw3 mb10 jcb">
-                          <p>W %</p>
-                          <p>0.0008</p>
-                        </div>
-                        <p className="cgray2">
-                          w % 1000 m
-                          <br />
-                          P %
-                        </p>
-                      </div> {/* itemInner */}
-                    </div>
-                  </div> {/* col */}
-                  <div className="col-md-4 col-xs-6 mb20">
-                    <div className="itemBack">
-                      <p className="itemTitle">Horse name</p>
-                      <div className="itemInner graybg br8">
-                        <img src={item_sample} className="itemThumbnail" />
-                        <div className="flex ai fw3 mb10 jcb">
-                          <p>W %</p>
-                          <p>0.0008</p>
-                        </div>
-                        <p className="cgray2">
-                          w % 1000 m
-                          <br />
-                          P %
-                        </p>
-                      </div> {/* itemInner */}
-                    </div>
-                  </div> {/* col */}
-                  <div className="col-md-4 col-xs-6 mb20">
-                    <div className="itemBack">
-                      <p className="itemTitle">Horse name</p>
-                      <div className="itemInner graybg br8">
-                        <img src={item_sample} className="itemThumbnail" />
-                        <div className="flex ai fw3 mb10 jcb">
-                          <p>W %</p>
-                          <p>0.0008</p>
-                        </div>
-                        <p className="cgray2">
-                          w % 1000 m
-                          <br />
-                          P %
-                        </p>
-                      </div> {/* itemInner */}
-                    </div>
-                  </div> {/* col */}
-                  <div className="col-md-4 col-xs-6 mb20">
-                    <div className="itemBack">
-                      <p className="itemTitle">Horse name</p>
-                      <div className="itemInner graybg br8">
-                        <img src={item_sample} className="itemThumbnail" />
-                        <div className="flex ai fw3 mb10 jcb">
-                          <p>W %</p>
-                          <p>0.0008</p>
-                        </div>
-                        <p className="cgray2">
-                          w % 1000 m
-                          <br />
-                          P %
-                        </p>
-                      </div> {/* itemInner */}
-                    </div>
-                  </div> {/* col */}
-                  <div className="col-md-4 col-xs-6 mb20">
-                    <div className="itemBack">
-                      <p className="itemTitle">Horse name</p>
-                      <div className="itemInner graybg br8">
-                        <img src={item_sample} className="itemThumbnail" />
-                        <div className="flex ai fw3 mb10 jcb">
-                          <p>W %</p>
-                          <p>0.0008</p>
-                        </div>
-                        <p className="cgray2">
-                          w % 1000 m
-                          <br />
-                          P %
-                        </p>
-                      </div> {/* itemInner */}
-                    </div>
-                  </div> {/* col */}
-                  <div className="col-md-4 col-xs-6 mb20">
-                    <div className="itemBack">
-                      <p className="itemTitle">Horse name</p>
-                      <div className="itemInner graybg br8">
-                        <img src={item_sample}className="itemThumbnail" />
-                        <div className="flex ai fw3 mb10 jcb">
-                          <p>W %</p>
-                          <p>0.0008</p>
-                        </div>
-                        <p className="cgray2">
-                          w % 1000 m
-                          <br />
-                          P %
-                        </p>
-                      </div> {/* itemInner */}
-                    </div>
-                  </div> {/* col */}
-                </div> {/* row */}
-              </div> {/* dashItems */}
-            </div> {/* blockBox */}
-          </div> {/* col */}
+                  </div></>)}
+                  </div> 
+              </div> 
+            </div>
+          </div> 
+          : "loading..."}
           {/* blur krna */}
           <div className="col-md-4 mb20">
             <div className="blockBox">
