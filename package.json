@@ -29,11 +29,12 @@
     "web-vitals": "^0.2.4"
   },
   "scripts": {
-    "start": "react-scripts start && cd api && node index",
+    "start": "cd api && node index.js  ",
+    "client": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "heroku-postbuild": "npm install --prefix api && npm install && npm run build"
+    "heroku-postbuild": "npm install && npm run build && npm install --prefix api "
   },
   "eslintConfig": {
     "extends": [
