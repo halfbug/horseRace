@@ -32,7 +32,11 @@ import { set } from 'dot-prop-immutable';
   
   }).catch(er => console.log(er));
    }
-useEffect(()=>getStats(horse.horse_id),[horse])
+useEffect(()=>{
+getStats(horse.horse_id);
+if(ihorse.horse_id !== horse.horse_id)
+setihorse(horse);
+},[horse])
 
   return <><div className="col-md-4 col-xs-6 mb20">
                    
@@ -347,7 +351,7 @@ console.log(horseStats)
               <div className="dashItems">
                 <div className="row">
                   
-                  {selectedRace && selectedRace.horses.map(horse=><HourseContainer horse={horse} />)}
+                  {selectedRace && selectedRace.horses.map(horse=><HourseContainer horse={horse} key={horse.horse_id} />)}
                   </div> 
               </div> 
             </div>
