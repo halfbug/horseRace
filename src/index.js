@@ -8,9 +8,15 @@ import store from './store';
 import { ApolloClient, createHttpLink, InMemoryCache } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { ApolloProvider } from '@apollo/client/react';
+import axios from 'axios'
+import isBaseURL from "@halfbug/is_base_url";
+
+const baseURL =isBaseURL() === "localhost" ?'http://localhost:4006/':"/"
+axios.defaults.baseURL = baseURL;
+
 
 const httpLink = createHttpLink({
-  uri: 'https://zed-ql.zed.run/graphql',
+  uri:  process.env.REACT_APP_RACE_API,
 });
 
 const authLink = setContext((_, { headers }) => {

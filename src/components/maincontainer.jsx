@@ -3,9 +3,58 @@ import './style.css'
 import { gql, useQuery } from '@apollo/client';
 import Typography from '@material-ui/core/Typography';
 import Slider from '@material-ui/core/Slider';
-
+import { set } from 'dot-prop-immutable';
  import horsesample from '../img/horse_sample.png'
  import item_sample from '../img/item_sample.png'
+ import axios from 'axios';
+
+ function HourseContainer ({horse}){
+  const [ihorse, setihorse] = useState(horse);
+
+  const getStats = (horseId)=>{
+    axios({
+      method: 'POST',
+      url: 'api/v1/scraper/horsestats',
+      data: { horseId },
+      crossdomain: true,
+      headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+          "Accept": 'application/json',
+          //"Authorization": res.data.signIn.token ? `Bearer ${res.data.signIn.token}` : ''
+      }
+  }).then(({data: stats}) => {
+   setihorse({...ihorse, stats})
+  
+    
+  
+    
+  
+  }).catch(er => console.log(er));
+   }
+useEffect(()=>getStats(horse.horse_id),[horse])
+
+  return <><div className="col-md-4 col-xs-6 mb20">
+                   
+  <div className="itemBack">
+    <p className="itemTitle">{ihorse.name}</p>
+    <div className="itemInner graybg br8">
+      <img src={ihorse.img_url} className="itemThumbnail" alt="horse"/>
+     
+      <div className="flex ai fw3 mb10 jcb">
+        <p>W %</p>
+        <p>{ihorse.stats ? ihorse.stats.totalWinPercentage : "..."}</p>
+      </div>
+      <p className="cgray2">
+        w %  {ihorse.stats? ihorse.stats.winPercentageByDistance[2] : "..."}m
+        <br />
+        P % {ihorse.stats? ihorse.stats.totalPlacePercentage : "..."}
+      </p>
+    </div> 
+  </div>
+</div></>
+ }
+
 
 function Maincontainer (){
   const GET_RES = gql`
@@ -78,18 +127,22 @@ function Maincontainer (){
  console.log("🚀 ~ file: App.js ~ line 16 ~ data", data);
  const [races, setRaces] = useState([]);
  const [selectedIndex, setselectedIndex] = useState(0);
+ const [selectedRace, setSelectedRace] = useState();
  useEffect(()=>{
   if(!loading && races.length<1) 
   {
     const {getRaceResults:{edges: raceslist}} = data;
     console.log(raceslist);
     setRaces(raceslist);
+    setSelectedRace(raceslist[0].node);
  }
  },[loading])
  
 function valuetext(value) {
   return `${value}°C`;
 }
+const [horseStats, sethorseStats] = useState([])
+console.log(races)
 
 
   const [value1, setValue1] = React.useState([20, 80]);
@@ -117,7 +170,7 @@ function valuetext(value) {
 
 
 
-
+console.log(horseStats)
 
 
     return(
@@ -227,7 +280,10 @@ function valuetext(value) {
                   {races.length>0 && races.map(({node: race},index) =>{
                     return(<> <tr>
                     <td>
-                      <a onClick={()=>setselectedIndex(index)}>
+                      <a onClick={()=>{
+                        setselectedIndex(index); 
+                        setSelectedRace(race);
+                        }}>
                       <p className="fw3"  >{race.name.toString()}</p>
                       </a>
                       <span className="cgray">Class {race.class}</span>
@@ -291,23 +347,7 @@ function valuetext(value) {
               <div className="dashItems">
                 <div className="row">
                   
-                  {races[selectedIndex].node.horses.map(horse=><> <div className="col-md-4 col-xs-6 mb20">
-                    <div className="itemBack">
-                      <p className="itemTitle">{horse.name}</p>
-                      <div className="itemInner graybg br8">
-                        <img src={horse.img_url} className="itemThumbnail" alt="horse"/>
-                        <div className="flex ai fw3 mb10 jcb">
-                          <p>W %</p>
-                          <p>0.0008</p>
-                        </div>
-                        <p className="cgray2">
-                          w % 1000 m
-                          <br />
-                          P %
-                        </p>
-                      </div> 
-                    </div>
-                  </div></>)}
+                  {selectedRace && selectedRace.horses.map(horse=><HourseContainer horse={horse} />)}
                   </div> 
               </div> 
             </div>
