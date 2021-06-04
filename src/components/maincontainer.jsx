@@ -1,21 +1,23 @@
 import React, {useState, useEffect} from 'react';
 import './style.css'
 import { gql, useQuery } from '@apollo/client';
+
 import Typography from '@material-ui/core/Typography';
 import Slider from '@material-ui/core/Slider';
 import { set } from 'dot-prop-immutable';
  import horsesample from '../img/horse_sample.png'
  import item_sample from '../img/item_sample.png'
  import axios from 'axios';
-
+ 
  function HourseContainer ({horse}){
   const [ihorse, setihorse] = useState(horse);
 
-  const getStats = (horseId)=>{
+  const getStats = (horseId, horseRequest)=>{
     axios({
       method: 'POST',
       url: 'api/v1/scraper/horsestats',
       data: { horseId },
+      cancelToken: horseRequest.token, // 2nd step
       crossdomain: true,
       headers: {
           'Access-Control-Allow-Origin': '*',
@@ -26,16 +28,16 @@ import { set } from 'dot-prop-immutable';
   }).then(({data: stats}) => {
    setihorse({...ihorse, stats})
   
-    
-  
-    
-  
   }).catch(er => console.log(er));
    }
 useEffect(()=>{
-getStats(horse.horse_id);
+  const horseRequest = axios.CancelToken.source()
+getStats(horse.horse_id, horseRequest);
 if(ihorse.horse_id !== horse.horse_id)
 setihorse(horse);
+return () => {
+  horseRequest.cancel() // <-- 3rd step
+}
 },[horse])
 
   return <><div className="col-md-4 col-xs-6 mb20">
@@ -59,6 +61,91 @@ setihorse(horse);
 </div></>
  }
 
+function RaceContainer ({selectedRace}) {
+
+  const [irace, setirace] = useState(selectedRace);
+
+  const getStats = (raceId,ourRequest)=>{
+    axios({
+      method: 'POST',
+      url: 'api/v1/scraper/racestats',
+      data: { raceId },
+      cancelToken: ourRequest.token, // 2nd step
+      crossdomain: true,
+      headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+          "Accept": 'application/json',
+          //"Authorization": res.data.signIn.token ? `Bearer ${res.data.signIn.token}` : ''
+      }
+  }).then(({data: stats}) => {
+   setirace({...irace, stats})
+  
+    
+  
+    
+  
+  }).catch(er => console.log(er));
+   }
+useEffect(()=>{
+  const ourRequest = axios.CancelToken.source()
+getStats(selectedRace.race_id, ourRequest);
+if(irace.race_id !== selectedRace.race_id)
+setirace(selectedRace);
+return () => {
+  ourRequest.cancel() // <-- 3rd step
+}
+},[selectedRace]);
+
+  return <div className="col-md-5 mb20">
+  <div className="blockBox">
+    <div className="majorBox br8 graybg">
+      <h2 className="fs20 mb5">{selectedRace.name}</h2>
+      <p className="cgray2 fs18">{selectedRace.length}M</p>
+    </div>
+    <div className="majorMiniCont">
+      <div className="flex">
+        <div className="majorMiniBox br8 w100 flex ai jc bluebg mr15">
+          <div className="cont">
+            <p className="fw4">Avg win % A distance</p>
+            <p className="cgray2 fs11 mt5">Avg sample text</p>
+            <a href="javascript:" className="cblue inline mt5">View race on Zed Run</a>
+          </div>
+        </div>
+        <div className="majorMiniBox br8 w100 flex ai jc bluebg mr15">
+          <div className="cont">
+            <p className="fw4">Avg win % A distance</p>
+            <p className="cgray2 fs11 mt5">Avg sample text</p>
+            <a href="javascript:" className="cblue inline mt5">View race on Zed Run</a>
+          </div>
+        </div>
+        <div className="majorMiniBox br8 w100 flex ai jc bluebg mr15">
+          <div className="cont">
+            <p className="fw4">Avg win % A distance</p>
+            <p className="cgray2 fs11 mt5">Avg sample text</p>
+            <a href="javascript:" className="cblue inline mt5">View race on Zed Run</a>
+          </div>
+        </div>
+        <div className="majorMiniBox br8 w100 flex ai jc bluebg ">
+          <div className="cont">
+            <p className="fw4">Avg win % A distance</p>
+            <p className="cgray2 fs11 mt5">Avg sample text</p>
+            <a href="javascript:" className="cblue inline mt5">View race on Zed Run</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div> {/* blockBox */}
+  <div className="blockBox mt30">
+    <div className="dashItems">
+      <div className="row">
+        
+        {selectedRace && selectedRace.horses.map(horse=><HourseContainer horse={horse} key={horse.horse_id} />)}
+        </div> 
+    </div> 
+  </div>
+</div> 
+}
 
 function Maincontainer (){
   const GET_RES = gql`
@@ -112,20 +199,47 @@ function Maincontainer (){
        }
      }
  `;
- 
+  const [classes, setclasses] = useState([]);
+  console.log("🚀 ~ file: maincontainer.jsx ~ line 197 ~ Maincontainer ~ classes", classes)
+  const [distance, setdistance] = useState({
+    from: 1000,
+    to: 2400
+  });
+  console.log("🚀 ~ file: maincontainer.jsx ~ line 199 ~ Maincontainer ~ distance", distance)
+  
+
+  const [searchInput, setSearchInput] = useState({onlyMyRacehorses:false})
+//  let searchInput = {
+//   onlyMyRacehorses:false,
+//   distance
+  
+// }
  const { loading, error, data } = useQuery(GET_RES,{ 
    variables: {
      first:10,
-     input:{
-       onlyMyRacehorses:false,
-       distance:{
-         from:1000,
-         to:2400
-       }
-     }
+     input:searchInput
    }
  }
  );
+useEffect(()=>{console.log(data)},[data]);
+
+ const handleSubmit=()=>{
+  // e.preventdefault();
+   console.log(distance);
+   console.log(classes)
+   let sinput = {onlyMyRacehorses:false, distance};
+   if(classes.length>0)
+   sinput={...sinput, classes:[ ...new Set(classes)].sort()};
+
+   console.log("🚀 ~ file: maincontainer.jsx ~ line 227 ~ handleSubmit ~ sinput", sinput)
+  //  setclasses([]);
+  //  setdistance({
+  //   from: 1000,
+  //   to: 2400
+  // })
+   setSearchInput(sinput);
+   
+ }
  console.log("🚀 ~ file: App.js ~ line 16 ~ loading", loading)
  console.log("🚀 ~ file: App.js ~ line 16 ~ error", error)
  console.log("🚀 ~ file: App.js ~ line 16 ~ data", data);
@@ -133,14 +247,14 @@ function Maincontainer (){
  const [selectedIndex, setselectedIndex] = useState(0);
  const [selectedRace, setSelectedRace] = useState();
  useEffect(()=>{
-  if(!loading && races.length<1) 
+  if(!loading) 
   {
     const {getRaceResults:{edges: raceslist}} = data;
     console.log(raceslist);
     setRaces(raceslist);
     setSelectedRace(raceslist[0].node);
  }
- },[loading])
+ },[data])
  
 function valuetext(value) {
   return `${value}°C`;
@@ -171,10 +285,24 @@ console.log(races)
     setValue4(newValue);
   };
 
+const handleCheckboxClick=(num)=>{
+  let clobj = classes;
+    if(clobj.indexOf(num)> -1)
+    clobj.splice(classes.indexOf(num),1);
+    else
+    clobj.push(num)
+    setclasses([...new Set(clobj)])
+    
+}
 
+const isChecked=(num)=>{
+if(classes.indexOf(num)<0)
+return false
+else
+return true
+}
 
-
-console.log(horseStats)
+// console.log(horseStats)
 
 
     return(
@@ -186,17 +314,19 @@ console.log(horseStats)
             <div className="blockBox">
               <h2 className="widgetHead1">Class</h2>
               <div className="classCont">
-                <div className="classOuter"><span className="classBox">Class I</span></div>
-                <div className="classOuter"><span className="classBox">Class II</span></div>
-                <div className="classOuter"><span className="classBox">Class III</span></div>
-                <div className="classOuter"><span className="classBox">Class IIV</span></div>
-                <div className="classOuter"><span className="classBox">Class V</span></div>
+               
+                <div className="classOuter"><span className={`classBox ${isChecked(1)?`checked`:''}`} onClick={()=>handleCheckboxClick(1)
+                  }>Class I</span></div>
+                <div className="classOuter"><span className={`classBox ${isChecked(2)?`checked`:''}`}  onClick={()=>handleCheckboxClick(2)}>Class II</span></div>
+                <div className="classOuter"><span className={`classBox ${isChecked(3)?`checked`:''}`}  onClick={()=>handleCheckboxClick(3)}>Class III</span></div>
+                <div className="classOuter"><span className={`classBox ${isChecked(4)?`checked`:''}`}  onClick={()=>handleCheckboxClick(4)}>Class IIV</span></div>
+                <div className="classOuter"><span className={`classBox ${isChecked(5)?`checked`:''}`}  onClick={()=>handleCheckboxClick(5)}>Class V</span></div>
               </div>
               <h2 className="widgetHead1 mt40">Distance</h2>
               <div className="distAvfSlider" >
-                <span className="classBox">Short (1000 - 1200mm)</span>
-                <span className="classBox">Short (1000 - 1200mm)</span>
-                <span className="classBox">Short (1000 - 1200mm)</span>
+                <span className={`classBox slick-slide  ${distance.from === 1000?`checked`:''}`}  onClick={()=>setdistance({from:1000, to:1200})}>Short (1000 - 1200mm)</span>
+                <span className={`classBox slick-slide  ${distance.from === 1400?`checked`:''}`}  onClick={()=>setdistance({from:1400, to:1800})}>Middle ( 1400-1800)</span>
+                <span className={`classBox slick-slide  ${distance.from === 2000?`checked`:''}`}  onClick={()=>setdistance({from:2000, to:2600})}>Long (2000-2600)</span>
               </div>
               <div className="flex avgFilterCont mt40 ai jcb">
                 <div className="cont">
@@ -271,7 +401,7 @@ console.log(horseStats)
  
 
               <hr className="lightBlueLine mt20 mb 10" />
-              <button type="submit" name="searchHorse" className="btnFilter trans cwhite fw3 br5 w100"><i className="fa fa-search" aria-hidden="true" /> &nbsp; Search </button>
+              <button onClick={handleSubmit} type="submit" name="searchHorse" className="btnFilter trans cwhite fw3 br5 w100"><i className="fa fa-search" aria-hidden="true" /> &nbsp; Search </button>
             </div> {/* blockBox */}
             <div className="blockBox mt30">
               
@@ -308,54 +438,7 @@ console.log(horseStats)
           </div> {/* col */}
           
           {!loading && races.length>0 ?
-          <div className="col-md-5 mb20">
-            <div className="blockBox">
-              <div className="majorBox br8 graybg">
-                <h2 className="fs20 mb5">{races[selectedIndex].node.name}</h2>
-                <p className="cgray2 fs18">{races[selectedIndex].node.length}M</p>
-              </div>
-              <div className="majorMiniCont">
-                <div className="flex">
-                  <div className="majorMiniBox br8 w100 flex ai jc bluebg mr15">
-                    <div className="cont">
-                      <p className="fw4">Avg win % A distance</p>
-                      <p className="cgray2 fs11 mt5">Avg sample text</p>
-                      <a href="javascript:" className="cblue inline mt5">View race on Zed Run</a>
-                    </div>
-                  </div>
-                  <div className="majorMiniBox br8 w100 flex ai jc bluebg mr15">
-                    <div className="cont">
-                      <p className="fw4">Avg win % A distance</p>
-                      <p className="cgray2 fs11 mt5">Avg sample text</p>
-                      <a href="javascript:" className="cblue inline mt5">View race on Zed Run</a>
-                    </div>
-                  </div>
-                  <div className="majorMiniBox br8 w100 flex ai jc bluebg mr15">
-                    <div className="cont">
-                      <p className="fw4">Avg win % A distance</p>
-                      <p className="cgray2 fs11 mt5">Avg sample text</p>
-                      <a href="javascript:" className="cblue inline mt5">View race on Zed Run</a>
-                    </div>
-                  </div>
-                  <div className="majorMiniBox br8 w100 flex ai jc bluebg ">
-                    <div className="cont">
-                      <p className="fw4">Avg win % A distance</p>
-                      <p className="cgray2 fs11 mt5">Avg sample text</p>
-                      <a href="javascript:" className="cblue inline mt5">View race on Zed Run</a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div> {/* blockBox */}
-            <div className="blockBox mt30">
-              <div className="dashItems">
-                <div className="row">
-                  
-                  {selectedRace && selectedRace.horses.map(horse=><HourseContainer horse={horse} key={horse.horse_id} />)}
-                  </div> 
-              </div> 
-            </div>
-          </div> 
+          <RaceContainer selectedRace={selectedRace} />
           : "loading..."}
           {/* blur krna */}
           <div className="col-md-4 mb20">

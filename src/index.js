@@ -16,7 +16,8 @@ axios.defaults.baseURL = baseURL;
 
 
 const httpLink = createHttpLink({
-  uri:  process.env.REACT_APP_RACE_API,
+  // uri:  process.env.REACT_APP_RACE_API,
+  uri: 'https://zed-ql.zed.run/graphql'
 });
 
 const authLink = setContext((_, { headers }) => {
